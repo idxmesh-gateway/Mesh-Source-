@@ -14,7 +14,9 @@
     "@supabase/supabase-js": "^2.45.0",
     "@supabase/ssr": "^0.5.0",
     "openai": "^4.67.0",
-    "@xpair-fun/xpair": "^0.1.0",
-    "@solana/wallet-adapter-base": "^0.9.23"
+    "xpair": "^0.1.0",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.35"
   }
 }
