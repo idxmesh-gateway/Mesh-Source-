@@ -8,6 +8,7 @@ export type Draft = {
   questions: string[];
   answers: string[];
   currentQ: number;
+  needsContinue?: boolean;
   savedAt: number;
 };
 
