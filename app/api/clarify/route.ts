@@ -16,12 +16,13 @@ const SYSTEM_PROMPT = [
   '- For a code task: ask about platform, framework, scope, constraints, or what "done" looks like.',
   '- For a writing task: ask about angle, tone, length, or specific content requirements.',
   '- For an analysis task: ask about data source, decision being made, or success criteria.',
+  '- If the task involves a product, budget, timeline, or measurable goal and the user has not specified it, ask for it. Ask about constraints only when they would materially change the answer.',
   '- If the task is already fully specified, return an empty array.',
   '- Each question under 25 words. Plain language. No preamble.',
   '',
   'Return ONLY a JSON array of strings. No prose, no markdown fences, no explanation.',
   'Examples:',
-  '["Is this for personal use or a business?","Should it work offline?","Roughly how many screens?"]',
+  '["Is this for personal use or a business?","What is your launch budget?","Roughly how many screens?"]',
   '[]',
 ].join('\n');
 
@@ -63,13 +64,12 @@ export async function POST(req: Request) {
           .slice(0, 3);
       }
     } catch {
-      // Fall through — the fallback below handles it
+      // Fall through — empty questions means "no clarification needed, solve now."
     }
 
     return NextResponse.json({ questions });
   } catch (err: any) {
     console.error('clarify_failed', err?.message ?? 'unknown');
-    // Safe fallback: an empty list means "no clarification needed, solve now."
     return NextResponse.json({ questions: [] });
   }
 }
