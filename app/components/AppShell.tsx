@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { saveDraft, loadDraft, clearDraft } from '@/lib/draft';
 import ProfileCard from './ProfileCard';
 import RefillModal from './RefillModal';
 
@@ -15,6 +16,7 @@ type Profile = {
 };
 type Project = { id: string; name: string; budget_balance: number; status: string };
 type Msg = { role: 'user' | 'assistant'; content: string };
+type Phase = 'idle' | 'clarifying' | 'ready' | 'solving' | 'done';
 
 export default function AppShell({
   profile: initialProfile,
@@ -29,11 +31,12 @@ export default function AppShell({
 
   const [messages, setMessages] = useState<Msg[]>([]);
   const [deliverable, setDeliverable] = useState('');
-  const [phase, setPhase] = useState<'idle' | 'clarifying' | 'ready' | 'solving' | 'done'>('idle');
+  const [phase, setPhase] = useState<Phase>('idle');
   const [task, setTask] = useState('');
   const [questions, setQuestions] = useState<string[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
+  const [restoredAt, setRestoredAt] = useState<number | null>(null);
 
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +61,61 @@ export default function AppShell({
     const t = setTimeout(() => setToast(null), 4000);
     return () => clearTimeout(t);
   }, [toast]);
+
+  // ---- Draft restore on project change ----
+  useEffect(() => {
+    if (!activeId) {
+      setMessages([]);
+      setDeliverable('');
+      setPhase('idle');
+      setTask('');
+      setQuestions([]);
+      setAnswers([]);
+      setCurrentQ(0);
+      setRestoredAt(null);
+      return;
+    }
+    const draft = loadDraft(profile.id, activeId);
+    if (!draft) {
+      setMessages([]);
+      setDeliverable('');
+      setPhase('idle');
+      setTask('');
+      setQuestions([]);
+      setAnswers([]);
+      setCurrentQ(0);
+      setRestoredAt(null);
+      return;
+    }
+    setMessages(draft.messages);
+    setDeliverable(draft.deliverable);
+    setTask(draft.task);
+    setQuestions(draft.questions);
+    setAnswers(draft.answers);
+    setCurrentQ(draft.currentQ);
+    if (draft.phase === 'clarifying' || draft.phase === 'solving') {
+      setPhase(draft.questions.length > 0 ? 'ready' : 'idle');
+    } else {
+      setPhase(draft.phase);
+    }
+    setRestoredAt(draft.savedAt);
+    setToast(`Draft restored from ${new Date(draft.savedAt).toLocaleTimeString()}`);
+  }, [activeId, profile.id]);
+
+  // ---- Draft autosave on any state change ----
+  useEffect(() => {
+    if (!activeId) return;
+    saveDraft(profile.id, activeId, {
+      messages,
+      deliverable,
+      phase,
+      task,
+      questions,
+      answers,
+      currentQ,
+      savedAt: Date.now(),
+    });
+  }, [activeId, profile.id, messages, deliverable, phase, task, questions, answers, currentQ]);
 
   async function refresh() {
     const supabase = createClient();
@@ -118,9 +176,7 @@ export default function AppShell({
     setActiveId(data.id);
     setNewName('');
     setNewBudget('5');
-    setMessages([]);
-    setDeliverable('');
-    setPhase('idle');
+    setRestoredAt(null);
     await refresh();
   }
 
@@ -136,6 +192,7 @@ export default function AppShell({
     setAnswers([]);
     setCurrentQ(0);
     setDeliverable('');
+    setRestoredAt(null);
 
     const res = await fetch('/api/clarify', {
       method: 'POST',
@@ -248,6 +305,7 @@ export default function AppShell({
   }
 
   function startNewTask() {
+    if (activeId) clearDraft(profile.id, activeId);
     setMessages([]);
     setDeliverable('');
     setPhase('idle');
@@ -256,6 +314,7 @@ export default function AppShell({
     setAnswers([]);
     setCurrentQ(0);
     setError(null);
+    setRestoredAt(null);
   }
 
   return (
@@ -275,10 +334,19 @@ export default function AppShell({
       </header>
 
       <div className="split">
-        {/* LEFT */}
         <section className="panel">
           <div className="panel-head">
-            <span>Conversation</span>
+            <span>
+              Conversation
+              {restoredAt && (
+                <span
+                  className="mono"
+                  style={{ marginLeft: 10, fontSize: 10, color: 'var(--cyan)' }}
+                >
+                  · RESTORED
+                </span>
+              )}
+            </span>
             {active && (
               <button className="btn btn-ghost btn-sm" onClick={startNewTask}>
                 + New task
@@ -407,7 +475,6 @@ export default function AppShell({
           )}
         </section>
 
-        {/* RIGHT */}
         <section className="panel">
           <div className="panel-head">
             <span>Deliverable</span>
@@ -426,7 +493,7 @@ export default function AppShell({
                   Your deliverable will appear here.
                   <br />
                   <span style={{ fontSize: 12 }}>
-                    Save it before closing the tab — we don&apos;t keep copies.
+                    Drafts auto-save in this browser. Save to disk or email before closing.
                   </span>
                 </p>
               </div>
@@ -503,4 +570,4 @@ function AnswerBox({ onSubmit }: { onSubmit: (v: string) => void }) {
       </div>
     </div>
   );
-              }
+                            }
