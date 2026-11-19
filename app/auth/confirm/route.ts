@@ -12,11 +12,9 @@ export async function GET(request: NextRequest) {
       type: type as 'email',
       token_hash,
     });
-
     if (!error) {
-      return NextResponse.redirect(new URL('/', request.url));
+      return NextResponse.redirect(new URL('/welcome', request.url));
     }
   }
-
   return NextResponse.redirect(new URL('/login?error=auth', request.url));
 }
