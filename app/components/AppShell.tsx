@@ -18,6 +18,11 @@ type Project = { id: string; name: string; budget_balance: number; status: strin
 type Msg = { role: 'user' | 'assistant'; content: string };
 type Phase = 'idle' | 'clarifying' | 'ready' | 'solving' | 'done';
 
+function stripContinue(s: string): string {
+  const stripped = s.replace(/\s*\bCONTINUE\b[.!]?\s*$/i, '').trimEnd();
+  return stripped.length > 0 ? stripped : s;
+}
+
 export default function AppShell({
   profile: initialProfile,
   initialProjects,
@@ -37,6 +42,7 @@ export default function AppShell({
   const [answers, setAnswers] = useState<string[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
   const [restoredAt, setRestoredAt] = useState<number | null>(null);
+  const [needsContinue, setNeedsContinue] = useState(false);
 
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +68,6 @@ export default function AppShell({
     return () => clearTimeout(t);
   }, [toast]);
 
-  // ---- Draft restore on project change ----
   useEffect(() => {
     if (!activeId) {
       setMessages([]);
@@ -73,6 +78,7 @@ export default function AppShell({
       setAnswers([]);
       setCurrentQ(0);
       setRestoredAt(null);
+      setNeedsContinue(false);
       return;
     }
     const draft = loadDraft(profile.id, activeId);
@@ -85,6 +91,7 @@ export default function AppShell({
       setAnswers([]);
       setCurrentQ(0);
       setRestoredAt(null);
+      setNeedsContinue(false);
       return;
     }
     setMessages(draft.messages);
@@ -93,6 +100,7 @@ export default function AppShell({
     setQuestions(draft.questions);
     setAnswers(draft.answers);
     setCurrentQ(draft.currentQ);
+    setNeedsContinue(Boolean(draft.needsContinue));
     if (draft.phase === 'clarifying' || draft.phase === 'solving') {
       setPhase(draft.questions.length > 0 ? 'ready' : 'idle');
     } else {
@@ -102,7 +110,6 @@ export default function AppShell({
     setToast(`Draft restored from ${new Date(draft.savedAt).toLocaleTimeString()}`);
   }, [activeId, profile.id]);
 
-  // ---- Draft autosave on any state change ----
   useEffect(() => {
     if (!activeId) return;
     saveDraft(profile.id, activeId, {
@@ -113,9 +120,21 @@ export default function AppShell({
       questions,
       answers,
       currentQ,
+      needsContinue,
       savedAt: Date.now(),
     });
-  }, [activeId, profile.id, messages, deliverable, phase, task, questions, answers, currentQ]);
+  }, [
+    activeId,
+    profile.id,
+    messages,
+    deliverable,
+    phase,
+    task,
+    questions,
+    answers,
+    currentQ,
+    needsContinue,
+  ]);
 
   async function refresh() {
     const supabase = createClient();
@@ -192,6 +211,7 @@ export default function AppShell({
     setAnswers([]);
     setCurrentQ(0);
     setDeliverable('');
+    setNeedsContinue(false);
     setRestoredAt(null);
 
     const res = await fetch('/api/clarify', {
@@ -205,8 +225,15 @@ export default function AppShell({
       setPhase('idle');
       return;
     }
-    setQuestions(data.questions ?? []);
-    setAnswers(new Array((data.questions ?? []).length).fill(''));
+
+    const qs: string[] = data.questions ?? [];
+    if (qs.length === 0) {
+      await solve(text, [], []);
+      return;
+    }
+
+    setQuestions(qs);
+    setAnswers(new Array(qs.length).fill(''));
     setPhase('ready');
   }
 
@@ -219,17 +246,17 @@ export default function AppShell({
     if (currentQ < questions.length - 1) {
       setCurrentQ(currentQ + 1);
     } else {
-      await solve(next);
+      await solve(task, questions, next);
     }
   }
 
-  async function solve(answerArr: string[]) {
+  async function solve(taskArg: string, questionArr: string[], answerArr: string[]) {
     if (!activeId) return;
     setPhase('solving');
     const composed = [
-      `Task: ${task}`,
+      `Task: ${taskArg}`,
       '',
-      ...questions.map((q, i) => `Q: ${q}\nA: ${answerArr[i] || '(skipped)'}`),
+      ...questionArr.map((q, i) => `Q: ${q}\nA: ${answerArr[i] || '(skipped)'}`),
       '',
       'Produce the deliverable now. Be thorough and ready to use.',
     ].join('\n');
@@ -245,7 +272,8 @@ export default function AppShell({
       setPhase('ready');
       return;
     }
-    setDeliverable(data.content ?? '');
+    setDeliverable(stripContinue(data.content ?? ''));
+    setNeedsContinue(Boolean(data.needs_continue));
     setMessages((m) => [...m, { role: 'assistant', content: 'Deliverable ready — see the right panel.' }]);
     setPhase('done');
     setToast(`Charged $${Number(data.charged).toFixed(6)}`);
@@ -275,9 +303,46 @@ export default function AppShell({
       setPhase('done');
       return;
     }
-    setDeliverable(data.content ?? '');
+    setDeliverable(stripContinue(data.content ?? ''));
+    setNeedsContinue(Boolean(data.needs_continue));
     setToast(`Charged $${Number(data.charged).toFixed(6)}`);
     setPhase('done');
+    await refresh();
+  }
+
+  async function continueGeneration() {
+    if (!activeId || !deliverable || !needsContinue) return;
+    setPhase('solving');
+    const composed = [
+      `Original task: ${task}`,
+      '',
+      'Previous deliverable (this ended at a stop point):',
+      deliverable,
+      '',
+      'Continue producing the deliverable from exactly where it stopped.',
+      'Do not repeat any previous content.',
+      'Do not start with a preamble like "Continuing..." — just resume from the exact stopping point.',
+      'If you finish, end without the word CONTINUE.',
+      'If you need to stop again, end with the literal word CONTINUE on its own line.',
+    ].join('\n');
+
+    const res = await fetch('/api/solve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: activeId, prompt: composed }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error ?? 'solve_failed');
+      setPhase('done');
+      return;
+    }
+
+    const addition = stripContinue(data.content ?? '');
+    setDeliverable(deliverable + '\n\n' + addition);
+    setNeedsContinue(Boolean(data.needs_continue));
+    setPhase('done');
+    setToast(`Charged $${Number(data.charged).toFixed(6)}`);
     await refresh();
   }
 
@@ -315,8 +380,19 @@ export default function AppShell({
     setCurrentQ(0);
     setError(null);
     setRestoredAt(null);
+    setNeedsContinue(false);
   }
 
+  function estimateCostRange(): { lo: number; hi: number } {
+    const answerChars = answers.join('').length;
+    const totalChars = task.length + answerChars;
+    const inputTokens = Math.ceil(totalChars / 4) + 500;
+    const outputTokens = totalChars > 2000 ? 7000 : 4000;
+    const cost = (inputTokens * 0.3 + outputTokens * 1.2) / 1_000_000;
+    const charged = cost * 20;
+    return { lo: charged * 0.5, hi: charged * 1.5 };
+  }
+  
   return (
     <div className="app">
       <header className="header">
@@ -420,6 +496,20 @@ export default function AppShell({
                     </div>
                     <div className="q-text">{questions[currentQ]}</div>
                     <AnswerBox onSubmit={answerCurrent} />
+                    {currentQ === questions.length - 1 && (
+                      <div
+                        className="mono"
+                        style={{
+                          marginTop: 10,
+                          fontSize: 11,
+                          color: 'var(--text-dimmer)',
+                          letterSpacing: '0.04em',
+                        }}
+                      >
+                        Estimated deliverable cost: ~$
+                        {estimateCostRange().lo.toFixed(3)}–${estimateCostRange().hi.toFixed(3)}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -507,6 +597,21 @@ export default function AppShell({
               <button className="btn btn-sm" onClick={emailCopy}>
                 Email a copy
               </button>
+              {needsContinue && (
+                <button
+                  className="btn btn-sm"
+                  onClick={continueGeneration}
+                  disabled={phase === 'solving'}
+                  style={{
+                    borderColor: 'var(--cyan)',
+                    color: 'var(--cyan)',
+                    marginLeft: 'auto',
+                  }}
+                >
+                  {phase === 'solving' ? <span className="spinner" /> : null}
+                  Continue generating
+                </button>
+              )}
             </div>
           )}
         </section>
@@ -570,4 +675,4 @@ function AnswerBox({ onSubmit }: { onSubmit: (v: string) => void }) {
       </div>
     </div>
   );
-                            }
+}
