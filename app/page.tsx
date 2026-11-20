@@ -6,6 +6,115 @@ export const metadata = {
     'Business plans, tested code, and executive documents. With the clarifying questions a senior consultant would ask. Pay per deliverable. No subscriptions.',
 };
 
+const CAPABILITIES = [
+  {
+    title: 'Business plans',
+    desc: 'Market analysis, go-to-market, financial model, execution roadmap. What consultants charge $5,000 to write, for $0.10.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M4 4h12l4 4v12H4z" />
+        <path d="M16 4v4h4" />
+        <path d="M8 16l2-3 2 2 3-5" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Tested code',
+    desc: 'Production-quality artifacts with error handling, edge cases, and self-tests. What a contractor charges $500 for a first pass, for $0.20.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M9 8l-4 4 4 4M15 8l4 4-4 4" />
+        <path d="M13 6l-2 12" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Websites & apps',
+    desc: 'Full-stack scaffolds, landing pages, and interactive tools — deployed-ready, with setup instructions included.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="M3 9h18" />
+        <circle cx="6.5" cy="7" r="0.5" fill="currentColor" />
+        <circle cx="9" cy="7" r="0.5" fill="currentColor" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Product specs',
+    desc: 'Prototypes, feature briefs, and technical documentation — with tradeoffs made explicit, not assumed.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M12 3l8 4v10l-8 4-8-4V7z" />
+        <path d="M12 12l8-5M12 12l-8-5M12 12v9" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Executive documents',
+    desc: 'Proposals, memos, board decks, and case studies. Polished, structured, ready to send.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M5 3h11l4 4v14H5z" />
+        <path d="M16 3v4h4" />
+        <path d="M9 12h7M9 16h5" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Marketing campaigns',
+    desc: 'Launch plans, ad copy, positioning, and brand voice — grounded in real market context.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M3 10v4a1 1 0 001 1h3l6 4V5L7 9H4a1 1 0 00-1 1z" />
+        <path d="M17 9a4 4 0 010 6" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Career documents',
+    desc: 'Resumes tuned to a specific role, cover letters, negotiation briefs, and interview prep.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <rect x="3" y="7" width="18" height="13" rx="2" />
+        <path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" />
+        <path d="M3 13h18" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Contracts & drafts',
+    desc: 'SOWs, NDAs, terms of service — first drafts with the pitfalls called out. Lawyer review recommended.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M5 3h11l4 4v14H5z" />
+        <path d="M16 3v4h4" />
+        <path d="M9 13c1-1 2-1 2 0s-1 1-1 0c2-2 4 0 4 0" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Research briefs',
+    desc: 'Competitive analysis, market intel, and decision memos — structured to make the call obvious.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <circle cx="10" cy="10" r="6" />
+        <path d="M15 15l5 5" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Data structures',
+    desc: 'Spreadsheet specs, database schemas, and API contracts — with the edge cases named.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="1" />
+        <path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
+      </svg>
+    ),
+  },
+];
+
 export default function LandingPage() {
   return (
     <main className="landing">
@@ -21,13 +130,15 @@ export default function LandingPage() {
       <section className="landing-hero">
         <div className="landing-hero-eyebrow">
           <span className="landing-dot" />
-          Pay per deliverable · No subscription · No card to explore
+          Pay per deliverable · No subscriptions · We don&apos;t store your work
         </div>
 
         <h1 className="landing-h1">
-          Enterprise-grade deliverables.
+          ENTERPRISE-GRADE DELIVERABLES
           <br />
-          <span className="landing-h1-accent">For pennies.</span>
+          <span className="landing-h1-for">for</span>
+          <br />
+          <span className="landing-h1-accent">PENNIES</span>
         </h1>
 
         <p className="landing-sub">
@@ -48,65 +159,19 @@ export default function LandingPage() {
       <section className="landing-section">
         <div className="landing-section-head">
           <div className="landing-eyebrow">What we build</div>
-          <h2 className="landing-h2">Real deliverables. Not chat replies.</h2>
+          <h2 className="landing-h2">Ten things. Delivered for pennies.</h2>
         </div>
 
         <div className="landing-grid">
-          <article className="landing-card">
-            <div className="landing-card-icon" aria-hidden>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M4 4h12l4 4v12H4z" />
-                <path d="M16 4v4h4" />
-                <path d="M8 12h8M8 16h6" />
-              </svg>
-            </div>
-            <h3>Full-scope business plans</h3>
-            <p>
-              Market analysis, go-to-market, financial model, and step-by-step execution.
-              What a consultant charges $5,000 to write, for $0.10.
-            </p>
-          </article>
-
-          <article className="landing-card">
-            <div className="landing-card-icon" aria-hidden>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 4l-4 16" />
-              </svg>
-            </div>
-            <h3>Tested code</h3>
-            <p>
-              Production-quality artifacts with error handling, edge cases, and self-tests.
-              What a contractor charges $500 for a first pass, for $0.20.
-            </p>
-          </article>
-
-          <article className="landing-card">
-            <div className="landing-card-icon" aria-hidden>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="3" y="6" width="18" height="13" rx="2" />
-                <path d="M3 10h18M8 6V4h8v2" />
-              </svg>
-            </div>
-            <h3>Executive documents</h3>
-            <p>
-              Proposals, memos, case studies, and briefs. Polished, structured, and ready
-              to send to your board, your client, or your investor.
-            </p>
-          </article>
-
-          <article className="landing-card">
-            <div className="landing-card-icon" aria-hidden>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <circle cx="12" cy="12" r="8" />
-                <path d="M12 8v4l3 2" />
-              </svg>
-            </div>
-            <h3>Every deliverable includes instructions</h3>
-            <p>
-              Not just the document — the exact sequence to execute it. What a runbook
-              would cost a week of someone&apos;s time to build.
-            </p>
-          </article>
+          {CAPABILITIES.map((c) => (
+            <article key={c.title} className="landing-card">
+              <div className="landing-card-icon" aria-hidden>
+                {c.icon}
+              </div>
+              <h3>{c.title}</h3>
+              <p>{c.desc}</p>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -121,40 +186,6 @@ export default function LandingPage() {
             would know to ask. That&apos;s why the deliverables read like a professional
             wrote them — because a professional asked first.
           </p>
-        </div>
-
-        <div className="landing-conversation">
-          <div className="landing-bubble landing-bubble-user">
-            <div className="landing-bubble-label">You</div>
-            Write a product launch plan for a $199 mechanical keyboard aimed at programmers.
-          </div>
-
-          <div className="landing-bubble landing-bubble-ai">
-            <div className="landing-bubble-label">
-              <span className="landing-dot" /> Mesh Source
-            </div>
-            <p>
-              Three things I need to get this right:
-            </p>
-            <ol className="landing-questions">
-              <li>What&apos;s your launch budget, and is T0 fixed or open?</li>
-              <li>Is this direct-to-consumer, Amazon FBA, or through a distributor?</li>
-              <li>Do you have an existing brand identity, or do I recommend one?</li>
-            </ol>
-          </div>
-
-          <div className="landing-bubble landing-bubble-user">
-            <div className="landing-bubble-label">You</div>
-            $30k, T0 open. Amazon FBA + Shopify. No brand yet — recommend one.
-          </div>
-
-          <div className="landing-bubble landing-bubble-deliver">
-            <div className="landing-bubble-label landing-bubble-label-success">
-              Deliverable ready · Charged $0.10
-            </div>
-            Complete plan — positioning, spec, budget, timeline, risk, KPIs. Ready to
-            review.
-          </div>
         </div>
       </section>
 
@@ -203,9 +234,7 @@ export default function LandingPage() {
         <div className="landing-logo landing-logo-sm">
           MESH<span>//</span>SOURCE
         </div>
-        <div className="landing-footer-tag">
-          Better questions. Better work.
-        </div>
+        <div className="landing-footer-tag">Better questions. Better work.</div>
       </footer>
     </main>
   );
