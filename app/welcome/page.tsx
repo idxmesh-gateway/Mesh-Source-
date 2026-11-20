@@ -39,13 +39,12 @@ export default function WelcomePage() {
 
       <Section title="What you pay">
         Every charge is the true compute cost of your request plus a fixed fee. No
-        subscriptions, no markup games, no expiring credits. 1 USDC = 1 credit.
+        subscriptions, no markup games, no expiring credits.
       </Section>
 
       <Section title="What we keep">
         Your email, your balance, and the names of your projects. Nothing else. No chat
-        history, no deliverables, no tracking, no analytics beyond what Vercel collects by
-        default.
+        history, no deliverables, no tracking.
       </Section>
 
       <Section title="What you must do">
@@ -60,8 +59,8 @@ export default function WelcomePage() {
       </Section>
 
       <div style={{ marginTop: 48 }}>
-        <Link href="/" className="btn btn-primary" style={{ padding: '12px 24px' }}>
-          I understand — continue
+        <Link href="/app" className="btn btn-primary" style={{ padding: '12px 24px' }}>
+          I understand — go to the app
         </Link>
       </div>
     </main>
