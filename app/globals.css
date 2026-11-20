@@ -470,6 +470,9 @@ a:hover { text-decoration: underline; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+
+}
+
 /* ============================================================
    Landing page
    ============================================================ */
@@ -599,17 +602,31 @@ a:hover { text-decoration: underline; }
   animation: landing-pulse 2s ease-in-out infinite;
 }
 
+/* EDIT 1: .landing-h1 — bigger, tighter, bold */
 .landing-h1 {
-  font-size: clamp(36px, 6vw, 68px);
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 1.08;
+  font-size: clamp(30px, 5.2vw, 62px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
   margin: 0 0 24px;
   color: var(--text);
+  text-transform: uppercase;
 }
 .landing-h1-accent {
   color: var(--cyan);
   text-shadow: 0 0 30px rgba(0, 240, 255, 0.35);
+}
+
+/* EDIT 2: .landing-h1-for — new, the small "for" connector */
+.landing-h1-for {
+  font-family: var(--font-mono);
+  font-size: 0.5em;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+  font-weight: 400;
+  text-transform: lowercase;
+  display: inline-block;
+  margin: 4px 0;
 }
 
 .landing-sub {
@@ -777,18 +794,20 @@ a:hover { text-decoration: underline; }
 
 /* ---------- Cards grid ---------- */
 
+/* EDIT 3: .landing-grid — 10 cards, auto-responsive */
 .landing-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
 }
 @media (max-width: 800px) {
-  .landing-grid { grid-template-columns: 1fr; }
+  .landing-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
 }
 
+/* EDIT 4: .landing-card — tighter padding for 10 cards */
 .landing-card {
   position: relative;
-  padding: 28px;
+  padding: 22px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-1);
@@ -821,11 +840,12 @@ a:hover { text-decoration: underline; }
 .landing-card:hover::before { opacity: 1; }
 .landing-card:hover { transform: translateY(-2px); }
 
+/* EDIT 5: .landing-card-icon — 30px, tighter margin */
 .landing-card-icon {
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   color: var(--cyan);
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 .landing-card-icon svg {
   width: 100%;
@@ -834,15 +854,15 @@ a:hover { text-decoration: underline; }
 }
 
 .landing-card h3 {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 500;
   letter-spacing: -0.01em;
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   color: var(--text);
 }
 .landing-card p {
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: 13px;
+  line-height: 1.6;
   color: var(--text-dim);
   margin: 0;
 }
